@@ -1,0 +1,5 @@
+node_modules/
+userdata/
+submission_logs/
+*.log
+.env

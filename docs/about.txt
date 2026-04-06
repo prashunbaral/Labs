@@ -1,0 +1,1 @@
+LFI happens when an application includes a file without proper validation.

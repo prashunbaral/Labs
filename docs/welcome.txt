@@ -1,0 +1,1 @@
+Welcome to the LFI Lab. Learn about Local File Inclusion vulnerabilities.
