@@ -11,6 +11,11 @@ app.use(cookieParser());
 // Configuration
 const SERVER_SECRET = crypto.randomBytes(32).toString('hex'); // Generated on startup, or load from .env
 const PORT = 3000;
+const submissionLogsDir = path.join(__dirname, 'submission_logs');
+
+if (!fs.existsSync(submissionLogsDir)) {
+    fs.mkdirSync(submissionLogsDir, { recursive: true });
+}
 
 // Helper to generate flags
 function generateFlags(studentId) {
@@ -283,7 +288,7 @@ app.post('/submit', (req, res) => {
     
     if (flag === correctFlag) {
         message = `<p class="success">Correct! You solved Level ${level}.</p>`;
-        fs.appendFileSync(path.join(__dirname, 'submission_logs', 'solves.log'), `${new Date().toISOString()} - ${studentId} solved Level ${level}\n`);
+        fs.appendFileSync(path.join(submissionLogsDir, 'solves.log'), `${new Date().toISOString()} - ${studentId} solved Level ${level}\n`);
     } else {
         message = `<p class="error">Incorrect flag for Level ${level}. Try again!</p>`;
     }
