@@ -146,10 +146,16 @@ app.get('/api/v1/debug/view-doc', (req, res) => {
     const pathParam = req.query.path;
     if (!pathParam) return res.send('No path specified');
 
+    // Prevent leaking all flags at once
+    if (pathParam.includes('flags.json') || pathParam.includes('flag2.txt') || pathParam.includes('flag3.txt')) {
+        return res.status(403).send('Access denied');
+    }
+
     let filePath;
     // Auto-route to student's flag if they traverse to it
     if (pathParam.includes('flag1.txt')) {
         const studentId = req.cookies.studentId;
+        if (!studentId) return res.status(401).send('Please register first');
         filePath = path.join(__dirname, 'userdata', studentId, 'flag1.txt');
     } else {
         filePath = path.join(__dirname, 'docs', pathParam);
@@ -166,6 +172,11 @@ app.get('/cdn-cgi/image/optimizer', (req, res) => {
     let resource = req.query.resource;
     if (!resource) return res.send('No resource specified');
 
+    // Prevent leaking all flags at once
+    if (resource.includes('flags.json') || resource.includes('flag1.txt') || resource.includes('flag3.txt')) {
+        return res.status(403).send('Access denied');
+    }
+
     // VULNERABLE FILTER: only replaces once, not recursive
     let filteredResource = resource.replace(/\.\.\//g, '');
     
@@ -173,6 +184,7 @@ app.get('/cdn-cgi/image/optimizer', (req, res) => {
     // Auto-route to student's flag if they bypass the filter and reach flag2.txt
     if (filteredResource.includes('flag2.txt')) {
         const studentId = req.cookies.studentId;
+        if (!studentId) return res.status(401).send('Please register first');
         filePath = path.join(__dirname, 'userdata', studentId, 'flag2.txt');
     } else {
         filePath = path.join(__dirname, 'assets', filteredResource);
@@ -206,6 +218,12 @@ app.get('/api/sync/avatar', (req, res) => {
     // VULNERABILITY: The app decodes the ID AFTER the filter check
     // This allows bypass via URL encoding: ..%2f..%2f
     let decodedId = decodeURIComponent(id);
+
+    // Prevent leaking all flags at once
+    if (decodedId.includes('flags.json') || decodedId.includes('flag1.txt') || decodedId.includes('flag2.txt')) {
+        return res.status(403).send('Access denied');
+    }
+
     let resourceName = decodedId.replace('.png', '');
     
     let filePath;
@@ -213,6 +231,7 @@ app.get('/api/sync/avatar', (req, res) => {
     // HELPER: If they are looking for flag3.txt via traversal, we route it to their private flag
     if (resourceName.includes('flag3.txt')) {
         const studentId = req.cookies.studentId;
+        if (!studentId) return res.status(401).send('Please register first');
         filePath = path.join(__dirname, 'userdata', studentId, 'flag3.txt');
     } else {
         filePath = path.join(__dirname, 'avatars', resourceName);
